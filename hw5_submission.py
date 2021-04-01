@@ -83,8 +83,63 @@ class BlackjackMDP(util.MDP):
     #   don't include that state in the list returned by succAndProbReward.
     def succAndProbReward(self, state, action):
         # BEGIN_YOUR_CODE (our solution is 37 lines of code, but don't worry if you deviate from this)
-        raise NotImplementedError
-        # END_YOUR_CODE
+        if state[2] == None:
+            return []
+        if (action == 'Quit'):
+            return [((state[0], None, None), 1, state[0])]
+        if state[0] > self.threshold:
+            return [((state[0], None, None), 1, 0)]
+        tupList = []
+
+        # action = "Peek"
+        if action == "Peek":
+            if state[1] != None:
+                return []
+            i = 0
+            for i in range(len(self.cardValues)):
+                deckList = list(state[2])
+                if deckList[i] != 0:
+                    tup = ((state[0], i, state[2]), deckList[i]/sum(list(state[2])), -self.peekCost)
+                    tupList.append(tup)
+            return tupList
+        
+        # action = "Take"
+        test = 0
+        if action == "Take":
+            if state[1] != None: # just peeked
+                deckList = list(state[2])
+                i = state[1]
+                prob = 1
+                deckList[i] -= 1
+                cardSum = state[0] + self.cardValues[i]
+                newDeck = tuple(deckList)
+                reward = 0
+                if cardSum > self.threshold:
+                    reward = 0
+                    newDeck = None
+                elif sum(deckList) == 0:
+                    newDeck = None
+                    reward = cardSum
+                return [((cardSum, None, newDeck), prob, reward)]
+
+            for i in range(len(self.cardValues)):
+                deckList = list(state[2])
+                if deckList[i] != 0:
+                    prob = deckList[i] / sum(deckList)
+                    deckList[i] -= 1
+                    cardSum = state[0] + self.cardValues[i]
+                    newDeck = tuple(deckList)
+                    reward = 0
+                    if cardSum > self.threshold:
+                        reward = 0
+                        newDeck = None
+                    elif sum(deckList) == 0:
+                        newDeck = None
+                        reward = cardSum
+                    tup = ((cardSum, None, newDeck), prob, reward)
+                    tupList.append(tup)
+            return tupList
+     # END_YOUR_CODE
 
     def discount(self):
         return 1
@@ -98,7 +153,7 @@ def peekingMDP():
     optimal action at least 10% of the time.
     """
     # BEGIN_YOUR_CODE (our solution is 1 line of code, but don't worry if you deviate from this)
-    raise NotImplementedError
+    return BlackjackMDP(cardValues=[1, 2, 3, 18, 20], multiplicity=25, threshold=20, peekCost=1)  
     # END_YOUR_CODE
 
 ############################################################
